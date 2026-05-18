@@ -1,26 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { authService } from '@/app/lib/authService';
+import { authService } from '../lib/authService';
+import { withAuth } from '../lib/protectedRoute';
 
-export default function Dashboard() {
-  const [user, setUser] = useState<{message: string} | null>(null);
+
+function Dashboard() {
   const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-    } else {
-        setUser({message: 'you are logged in'})
-    }
-  }, [router]);
 
   return (
     <div>
       <h1>Dashboard</h1>
-      {user && <p>{user.message}</p>}
+      <p>Welcome!</p>
       <button onClick={() => {
         authService.logout();
         router.push('/login');
@@ -30,3 +21,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+export default withAuth(Dashboard);

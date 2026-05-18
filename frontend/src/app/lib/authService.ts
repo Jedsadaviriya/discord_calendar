@@ -21,7 +21,17 @@ export const authService = {
     return data;
   },
 
-  logout() {
-    localStorage.removeItem('token');
+  async logout() {
+  const token = localStorage.getItem('token');
+  if (token) {
+    await fetch(`${API_URL}/api/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
   }
+  localStorage.removeItem('token');
+}
 };
