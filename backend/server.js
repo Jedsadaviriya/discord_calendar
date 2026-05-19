@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const Event = require('./models/Event')
 require('dotenv').config();
 const app = express();
 //middleware
@@ -14,7 +15,7 @@ mongoose.connect(process.env.MONGO_URI)
 .catch(err => console.log('MongoDB error:', err))
 //test route
 app.get('/api/test', (_req,res) =>{
-  res.json({message: 'backend is working you dumb fahff'})
+  res.json({message: 'backend is working you dumb fahff ararara'})
 })
 //server start
 const PORT = process.env.PORT ||5000;
@@ -74,4 +75,30 @@ app.get('/api/profile', checkAuth, (req, res)=> {
 })
 app.post('/api/logout', checkAuth, (req,res) => {
   res.json({message: 'Logged out successfully'});
+
+})
+// event post
+app.post('/api/events', checkAuth, async(req,res)=>{
+  try{
+    const event = new Event({
+      title: req.body.title,
+      startTime: new Date(req.body.startTime),
+      endTime: new Date(req.body.endTime),
+      type: req.body.type,
+      createdBy: req.user.id
+    });
+    await event.save();
+    res.status(201).json(event);
+  }catch(err){
+    res.status(400).json({error: err.message});
+  }
+});
+// get events info
+app.get('/api/events', checkAuth, async(req, res)=>{
+  try{
+    const events = await Event.find({createdBy: req.user.id});
+    res.json(events);
+  }catch(err){
+    res.status(400).json({error: err.message})
+  }
 })

@@ -21,6 +21,19 @@ export const authService = {
     return data;
   },
 
+  async request(path: string, method: string, body?: object) {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? {'Authorization': `Bearer ${token}`} : {})
+      },
+      ...(body ? {body: JSON.stringify(body)} : {})
+    });
+    return res.json();
+  },
+
   async logout() {
   const token = localStorage.getItem('token');
   if (token) {
