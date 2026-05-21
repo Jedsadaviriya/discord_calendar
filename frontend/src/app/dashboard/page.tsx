@@ -28,6 +28,7 @@ function Dashboard() {
       <h1>Dashboard</h1>
       <Link href="/dashboard/events">Create Events</Link>
       <Link href="/dashboard/communities">Create Communities</Link>
+      <Link href="/dashboard/schedule">Set Work Schedule</Link>
       <h2>Yo Fam (Communities)</h2>
       {communities.map((community: any)=>(
         <div key={community._id}>
@@ -48,10 +49,9 @@ function Dashboard() {
         authService.logout();
         router.push('/login');
       }}>
-        Logout
+        Logout because why not
       </button>
     </div>
   );
 }
-
 export default withAuth(Dashboard);

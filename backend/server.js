@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken')
 const User = require('./models/User')
 const Community =require('./models/Community')
 const Event = require('./models/Event')
+const WorkSchedule =require('./models/WorkSchedule')
 require('dotenv').config();
 const app = express();
 //middleware
@@ -165,3 +166,28 @@ app.get('/api/communities/:id/events', checkAuth, async (req, res) => {
     res.status(400).json({error: err.message});
   }
 });
+// create work schedule
+app.post('/api/schedule', checkAuth, async(req,res)=>{
+  try {
+    const schedule = new WorkSchedule({
+      userId: req.user.id,
+      daysOfWeek: req.body.daysOfWeek,
+      startTime: req.body.startTime,
+      endTime:req.body.endTime,
+      timezone: req.body.timezone
+    });
+    await schedule.save();
+    res.status(201).json(schedule);
+  } catch (err){
+    res.status(400).json({error: err.message})
+  }
+})
+// get work schedule
+app.get('/api/schedule', checkAuth, async(req,res)=>{
+  try{
+    const schedule = await WorkSchedule.findOne({userId: req.user.id});
+    res.json(schedule);
+  } catch (err){
+    res.status(400).json({error: err.message})
+  }
+})
