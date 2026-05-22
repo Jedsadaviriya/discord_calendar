@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { authService } from '@/app/lib/authService';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,7 +17,8 @@ export default function Login() {
     if (data.error) {
       setError(data.error);
     } else {
-      router.push('/dashboard');
+      const redirect = searchParams.get('redirect');
+      router.push(redirect ?? '/dashboard');
     }
   };
 

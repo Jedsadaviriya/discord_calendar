@@ -9,6 +9,7 @@ const Event = require('./models/Event')
 const WorkSchedule =require('./models/WorkSchedule')
 require('dotenv').config();
 const app = express();
+const { postEventToDiscord } = require('../discord-bot/bot.js')
 //middleware
 app.use(cors());
 app.use(express.json());
@@ -18,12 +19,7 @@ mongoose.connect(process.env.MONGO_URI)
 .catch(err => console.log('MongoDB error:', err))
 //test route
 app.get('/api/test', (_req,res) =>{
-  res.json({message: 'backend is working you dumb fahff fjaoisdh gw4 ararara'})
-})
-//server start
-const PORT = process.env.PORT ||5000;
-app.listen(PORT, ()=> {
-  console.log(`server running on http://localhost:${PORT}`)
+  res.json({message: 'backend is working'})
 })
 //register
 app.post('/api/register', async (req, res) => {
@@ -92,6 +88,11 @@ app.post('/api/events', checkAuth, async(req,res)=>{
       createdBy: req.user.id
     });
     await event.save();
+
+    const user = await User.findById(req.user.id);
+    if (user?.discordId){
+      await postEventToDiscord(user.discordId, event.title, event.startTime);
+    }
     res.status(201).json(event);
   }catch(err){
     res.status(400).json({error: err.message});
@@ -190,4 +191,50 @@ app.get('/api/schedule', checkAuth, async(req,res)=>{
   } catch (err){
     res.status(400).json({error: err.message})
   }
+})
+// best time
+app.post('/api/communities/:id/best-time', checkAuth, async (req, res) => {
+  try {
+    const community = await Community.findById(req.params.id);
+    if (!community) return res.status(404).json({error: 'Community not found'});
+    const schedules = await WorkSchedule.find({userId: {$in: community.members}});
+    const events = await Event.find({createdBy: {$in: community.members}});
+    const commonDays = schedules.length > 0 
+      ? schedules[0].daysOfWeek.filter(day => 
+          schedules.every(s => s.daysOfWeek.includes(day))
+        )
+      : [];
+    const commonStartTime = schedules.length > 0 
+      ? schedules[0].startTime 
+      : '09:00';
+    const commonEndTime = schedules.length > 0 
+      ? schedules[0].endTime 
+      : '17:00';
+    res.json({
+      commonDays,
+      commonStartTime,
+      commonEndTime,
+      message: `Everyone is free ${commonDays.length ? 'on these days' : 'no common days found'}`
+    });
+  } catch (err) {
+    res.status(400).json({error: err.message});
+  }
+});
+// discord linking page command
+app.post('/api/discord/link', checkAuth, async(req, res)=>{
+  try{
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {discordId: req.body.discordId},
+      {new:true},
+    );
+    res.json({message: 'Discord account linked', user});
+  }catch (err){
+    res.status(400).json({error: err.message});
+  }
+})
+// server start
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`server running on http://localhost:${PORT}`)
 })

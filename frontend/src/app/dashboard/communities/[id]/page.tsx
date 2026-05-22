@@ -10,8 +10,17 @@ function CommunityDetail(){
     const [error, setError]= useState('');
     const [communityEvents, setCommunityEvents] = useState<any[]>([])
     const [commuinty, setCommunity]=useState<any>(null);
+    const [bestTime, setBestTime]=useState<any>(null);
     const params= useParams();
     const communityId = params.id as string;
+
+    const handleFindBestTime= async()=>{
+        const data = await authService.request(`/api/communities/${communityId}/best-time`, 'POST', {});
+        if (data){
+            setBestTime(data);
+
+        }
+    }
 
     useEffect(()=>{
         fetchCommunity();
@@ -55,10 +64,19 @@ function CommunityDetail(){
                     <h3>{event.title}</h3>
                     <p>{event.type}</p>
                     <p>{new Date(event.startTime).toLocaleString()}</p>
-                    <p>hello world</p>
+                    
                 </div>
                 
             ))}
+            <h2>Find Best Time</h2>
+            <button onClick={handleFindBestTime}>Find Best Time</button>
+            {bestTime && (
+            <div>
+                <p>{bestTime.message}</p>
+                <p>Common days: {bestTime.commonDays.length > 0 ? bestTime.commonDays.join(', ') : 'none'}</p>
+                <p>Time: {bestTime.commonStartTime} - {bestTime.commonEndTime}</p>
+            </div>
+            )}
         </div>
     )
 }
